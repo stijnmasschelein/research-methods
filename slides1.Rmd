@@ -1,0 +1,122 @@
+---
+title: "Introduction to Research Methods"
+author: "Stijn Masschelein"
+date: "`r format(Sys.Date(), '%B, %Y')`"
+output:
+  html_document: 
+    df_print: kable
+    number_sections: yes
+    theme: readable
+    css: styles.css
+    toc: true
+  ioslides_presentation: default
+---
+
+<!--
+Things I did to make this work
+- See yaml: The html document are the notes, the slides are well the slides
+- Made a snippet in Rstudio (`no`) for the notes div; (`cs`) for the content
+  of slides.
+- Made an additional style for the notes and the slides.
+- This YAML section need to come first
+-->
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+# Research Methods in Finance and Accounting
+
+## Introduction
+
+<div class="content_slide">
+- Preparation to do empirical research (in accounting and finance)
+- From theory to data
+- From data to statistical tests
+</div>
+
+<div class="notes">
+The emphasis on the units will be on the practical and statistical issues of
+the data analysis part of a thesis. The influence will not be on the accounting
+and finance part of your thesis. The goal is to be relevant to everyone in the
+unit.
+</div>
+
+## Four Modules
+
+<div class="content_slide">
+1. The research process and basic data skills by me
+2. Timeseries and databases by Prof. Dirk Bauer
+3. Panel data and identification by Prof. Jing Yang
+4. Restricted dependent variable and survey data by Prof. Paul Gerrans
+</div>
+
+<div class="notes">
+All modules work as stand-alone 3-week units and aim to cover a wide
+range of topics. Not all of them will in the end be relevant for everyone. 
+However, it is probably a good idea to get to know the different statistical
+methods, their advantages, and disadvantages. Bringing a new methodology to 
+an old topic can be a valuable contribution. Some problems have already been
+solved in other research streams.
+</div>
+
+## Assessment
+
+<div class="content_slide">
+- No Exam
+- Four assignments (%)
+- Proposal and presentation (%) 
+</div>
+
+<div class="notes">
+We want you to (1) do some data analysis and (2) be well prepared to undertake
+(the data analaysis part of) a research project. So we are going to evaluate 
+you by letting you (1) analyse data and (2) prepare your honours thesis. 
+</div>
+
+# The first three weeks: CEO compensation
+## Warning: I am not a specialist
+
+```{r out.width = "100%"}
+knitr::include_graphics(
+  "http://i0.kym-cdn.com/entries/icons/original/000/008/342/ihave.jpg")
+```
+
+<div class="notes">
+I am not a specialist in the topic nor in this type of data analysis. CEO
+compensation is something that people in finance, accounting, economics, and
+outside of academia are interested in. The topic is probably the one with the
+most commonality. I am comforable with these type of economic theories and I am
+going to stress the role of theory in data analysis a lot. Some of you will have
+a topic that is at first sight less theory driven or rely more strongly on very
+specific knowledge about your setting.
+</div>
+
+## Topic
+
+<div class="content_slide">
+Completely based on ["Executive Compensation: A Modern Primer"](https://dx.doi.org/10.1257/jel.20161153) by Alex Edmans and
+Xavier Gabraix in *Journal of Economic Literature*.
+
+- The level of CEO compensation
+- CEO incentives
+</div>
+
+<div class="notes">
+I am going to focus on two topics.
+
+1. How high can we expect the total compensation of a CEO to be (compared to 
+   other CEOs) based on some simple economic assumptions. Too high CEO 
+   compensation is sometimes seen as a signal of bad corporate goverance. 
+   To measure what 'too high' means, we first need to establish a baseline of
+   normal levels of compensation.
+2. How should CEOs be incentivised: equity or options? How schould we measure
+   whether CEOs have appropriate incentives: \$ for \$ increases, % for % 
+   increases? 
+</div>
+
+## Title
+
+
+
+

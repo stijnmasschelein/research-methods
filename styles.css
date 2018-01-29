@@ -1,0 +1,20 @@
+body{
+  margin: auto;
+  max-width: 600px;
+}
+.notes{
+  font-size: .95em;
+  padding: 10px;
+  text-align: justify;
+}
+.content_slide{
+  margin: auto;
+  max-width: 500px;
+  padding: 20px 10px 15px 15px;
+  border-radius: 10px;
+  border: 2px solid #000077;
+}
+@media print {
+  h1 {page-break-before: always;}
+  .notes {page-break-inside: avoid;}
+}
