@@ -1,9 +1,13 @@
 body{
   margin: auto;
-  max-width: 600px;
+  max-width: 720px;
+  background-color: #FFEFD5;
+}
+.r{
+  font-size: 90%;
 }
 .notes{
-  font-size: .95em;
+  font-size: .90em;
   padding: 10px;
   text-align: justify;
 }
@@ -11,10 +15,11 @@ body{
   margin: auto;
   max-width: 500px;
   padding: 20px 10px 15px 15px;
-  border-radius: 10px;
-  border: 2px solid #000077;
+  border-radius: 5px;
+  border: 2px solid #aaaaaa;
+  background-color: #FFFFFF;
 }
 @media print {
   h1 {page-break-before: always;}
-  .notes {page-break-inside: avoid;}
+  .content_slide {page-break-inside: avoid;}
 }

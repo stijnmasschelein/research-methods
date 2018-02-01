@@ -3,12 +3,12 @@ title: "Introduction to Research Methods"
 author: "Stijn Masschelein"
 date: "`r format(Sys.Date(), '%B, %Y')`"
 output:
-  html_document: 
+  html_document:
+    css: styles.css
     df_print: kable
     number_sections: yes
     theme: readable
-    css: styles.css
-    toc: true
+    toc: yes
   ioslides_presentation: default
 ---
 
@@ -23,6 +23,11 @@ Things I did to make this work
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
+library(tidyverse)
+library(ggplot2)
+library(ggthemes)
+theme_set(theme_classic(base_size = 15))
+scale_color_default = scale_color_fivethirtyeight()
 ```
 
 # Research Methods in Finance and Accounting
@@ -89,7 +94,8 @@ outside of academia are interested in. The topic is probably the one with the
 most commonality. I am comforable with these type of economic theories and I am
 going to stress the role of theory in data analysis a lot. Some of you will have
 a topic that is at first sight less theory driven or rely more strongly on very
-specific knowledge about your setting.
+specific knowledge about your setting. I am going to try to convince you that it
+is going to be useful to think about the underlying story that you are testing.
 </div>
 
 ## Topic
@@ -112,11 +118,289 @@ I am going to focus on two topics.
    normal levels of compensation.
 2. How should CEOs be incentivised: equity or options? How schould we measure
    whether CEOs have appropriate incentives: \$ for \$ increases, % for % 
-   increases? 
+   increases? Incentives are a big topic in 
 </div>
 
-## Title
+## Theory
 
+### Firm production function
 
+<div class="content_slide">
+\[
+V = T^{\alpha_T} \Bigl( \frac{K}{\alpha_K} \Bigl)^{\alpha_K}
+                 \Bigl( \frac{L}{\alpha_L} \Bigl)^{\alpha_L}
+\\
+\alpha_T + \alpha_K + \alpha_L = 1
+\]
+</div>
 
+<div class="notes">
+- $V =$ The value of the firm
+- $K =$ Capital of the firm
+- $L =$ Labour of the firm
+- $T =$ CEO talent/skills/ability/experience
+
+We assume that there is nothing in the structure of the production function that
+favours a particular firm size, i.e. constant returns to scale 
+($\alpha_T + \alpha_K + \alpha_L = 1$). 
+</div>
+
+### CEO decision
+
+<div class="content_slide">
+\[
+W_T = \max_{K, L} V - w_L L - rK
+\]
+</div>
+
+<div class="notes">
+The CEO maximises their income $W_T$ by attracting capital at a cost, $r$, and
+and hiring labour at a wage, $w_L$. The model assumes that the CEO takes the 
+ultimate decision. As it turns out when you assume competitive labour and 
+financial markets, that assumptions does not really matter a lot.
+</div>
+
+<div class="notes">
+This model is too simple to capture reality perfectly. However, that is not the
+goal of the model and of this exercise. The idea is to see whether we can find
+a reasonable baseline for CEO compensation that we can test against the data.
+</div>
+
+## Relation between size and CEO wage
+
+<div class="content_slide">
+\[
+W_T = \alpha_T V
+\]
+
+> In this model, the driving force is that more talented CEOs grow the business
+> to a bigger size and they earn more money when they create more value.
+
+</div>
+
+<div class="notes">
+First find the optimal level of capital  ...
+\[
+\frac{\partial V}{\partial K} =  T^{\alpha_T}  
+\Bigl( \frac{K}{\alpha_K} \Bigl)^{\alpha_K - 1} 
+\Bigl( \frac{L}{\alpha_L} \Bigl)^{\alpha_L} - r = 0
+\\
+T^{\alpha_T} \Bigl( \frac{K}{\alpha_K} \Bigl)^{\alpha_K} 
+\Bigl( \frac{L}{\alpha_L} \Bigl)^{\alpha_L}
+\frac{\alpha_K}{K}
+= r 
+\\
+\frac{V}{r} = \frac{K}{\alpha_K}
+\]
+... and labour
+\[
+\frac{\partial V}{\partial K} =  T^{\alpha_T}  
+\Bigl( \frac{K}{\alpha_K} \Bigl)^{\alpha_K} 
+\Bigl( \frac{L}{\alpha_L} \Bigl)^{\alpha_L - 1} - w_L
+\\
+T^{\alpha_T} \Bigl( \frac{K}{\alpha_K} \Bigl)^{\alpha_K} 
+\Bigl( \frac{L}{\alpha_L} \Bigl)^{\alpha_L}
+\frac{\alpha_L}{L} = w_L
+\\
+\frac{V}{w_L} = \frac{L}{\alpha_L}
+\]
+
+Now we can plugin $L$ and $K$ in $V$ ...
+
+\[
+V = T^{\alpha_T} \Bigl( \frac{V}{r} \Bigl) ^{\alpha_K} 
+\Bigl( \frac{V}{w_L} \Bigl) ^{\alpha_L} 
+\\
+V^{1 - \alpha_K - \alpha_L} = \frac{T^{\alpha_T}}
+{r^{\alpha_K} w_L^{\alpha_L}}
+\\
+V^{\alpha_T} = \frac{T^{\alpha_T}}
+{r^{\alpha_K} w_L^{\alpha_L}}
+\\
+V = \frac{T}
+{r^{\frac{\alpha_K}{\alpha_T}} w_L^{\frac{\alpha_L}{\alpha_T}}}
+\]
+
+... and in $W_T$.
+
+\[
+W_T = V - V \alpha_K - V\alpha_L = (1 - \alpha_K - \alpha_L) V = \alpha_T V
+\]
+
+I like the basic intuition and deriviation of the model. The derivation is
+straightforward and (some of) the implicit assumptions are relatively easy to
+accept. The effect of the CEO depends on the size of the firm ($V$). When there
+is more capital and labour available a more talented CEO will have a bigger
+impact. The model also predicts a clear quantitative relationship between firm
+size, $V$, and CEO compensation, $W_T$, i.e. that relationship should be 
+linear. This is a nice result that we can test with data. In contrast to the
+linear relationship between firm size and CEO talent. We can measure $V$ but not
+$T$.
+
+</div>
+
+## Data: Relation Compensation-Value 
+<div class="notes">
+```{r us_comp_value_data, include = TRUE, echo=TRUE}
+# Read the data from a custom folder. If the data is not in this folder, change
+# the path to the folder. Rename some of the variables to make them easier to
+# work with.
+folder = "~/Dropbox/R/wrds/data/"
+us_comp = readRDS(paste0(folder, "us-compensation.RDS")) %>%
+  rename(total_comp = tdc1)
+us_value = readRDS(paste0(folder, "us-value.RDS")) %>%
+  rename(year = fyear, market_value = mkvalt) %>%
+  distinct
+# Match the compensation data with the value data based on company key and year
+us_comp_value = left_join(select(us_comp, gvkey, year, total_comp),
+                          us_value, by = c("year", "gvkey"))
+# Run the non-linear regression. This goes beyond what we are going to do in 
+# this module.
+power_law_start = list(a= 5, b = .15)
+power_law_comp = nls(total_comp/1000 ~ a * (market_value/1000)^b, 
+                     data = us_comp_value, start = power_law_start) 
+eqn_comp = substitute(italic("compensation") == a * italic("MV") ^ b,
+                      list(a = format(coef(power_law_comp)[1], digits = 2),
+                           b = format(coef(power_law_comp)[2], digits = 2)))
+# create the plot 
+plot_comp_value =  
+  ggplot(us_comp_value, aes(x = market_value/1000, y = total_comp/1000)) +
+  geom_point(alpha = .125) +
+  stat_function(fun = 
+                function(x){
+                  coef(power_law_comp)[1] * x ^ coef(power_law_comp)[2]},
+                colour = "blue") +
+  ggtitle("S&P500 CEO compensation 2011-2017") +
+  ylab("CEO compensation (in million USD)") +
+  xlab("Company market value (in billion USD)") +
+  scale_color_default
+```
+</div>
+
+<div class="content_slide">
+```{r us_comp_value_plot, warning=FALSE}
+print(plot_comp_value + annotate("text", y = 45, x = 500, parse = TRUE,
+                                 label = as.character(as.expression(eqn_comp))))
+```
+</div>
+
+<div class="notes">
+The data is downloaded from Compustat and Execucomp. A lot of you will use
+these are similar databases in your research project. I did not clean or check
+the data for this exercise. In your own project, you should show a better 
+understanding of how the data are gathered and what they include than what I
+am displaying here.
+
+- CEO compensation is fairly complete. It includes changes in the value of 
+  equity and options.
+- Market value also includes all outstanding financial instruments on the 
+  company. 
+
+The qualitative relationship holds quite well. Bigger companies have CEOs with
+higher compensation. However, the relationship is far from linear and looks more
+like a power function. Clearly there are other effects at play. In this sample, 
+the power coefficient is 0.23. Prior studies have found a coefficient 
+more closely to 0.33 (Baker, Jensen, and Murphy 1988). Remember that in our
+setup the CEO can grow the firm at will by attracting more capital and more
+labour. That assumption is probably too strong.
+</div>
+
+## The research process
+
+<div class="content_slide">
+- Make assumptions
+- Derive relationship between measurable quantities
+- Compare the theory and the data
+</div>
+
+<div class="notes">
+Note what we have just done. We started with some assumptions about the
+production function of a company and competitive markets to find the 
+theoretical relation between firm size and CEO compensation. We followed up by
+testing this theory to data from S&P500 firms. These are the steps that you
+should be following.
+</div>
+
+# Details of the research process
+
+## Literature search
+
+<div class="content_slide">
+- https://www.scholar.google.com
+- https://onesearch.library.uwa.edu.au
+- https://apps.webofknowledge.com
+- [EBSCOhost Research Databases](https://search.ebscohost.com/login.asp?defaultdb=bth&lang=en)
+- https://ssrn.com/en/
+- https://www.nber.org/papers.html
+</div>  
+
+<div class="notes">
+In the CEO compensation case above, we derived the theoretical prediction.
+Normally, you will build on prior theoretical and empirical research to build
+predictions. The
+
+In most cases (ssrn is the exception), you will have to be on the university's
+network if you want to actually read the full paper. 
+
+- Google Scholar is probably the most comprehensive repository. This search 
+  engine work very similar to regular Google search. There are some additional
+  tricks you can use "author:lastname-firstname" will help you to narrow down
+  papers from a specific author. "intitle:keyword" let's you search for keywords
+  in the title of papers. You can also narrow down your search based on year
+  of publication. The advanced search features hidden in the left side bar give
+  you additional options such as searching for certain journals. If you are
+  on the university network, Google Scholar will tell you for every paper 
+  whether it is accessible or not. 
+- Onesearch is the university search engine. It's the best way to figure out 
+  whether there is an easily accessible version of the paper.
+- Webofknowledge and EBSCOhost are two publisher driven initiatives. They work
+  pretty well. Each with their own quirks. 
+- SSRN (Social Science Research Network) and NBER (National Bureau of Economic
+  Research) both provide access to their own not-yet-peer-reviewed paper 
+  repositories. Here you go to find cutting edge research.
+</div>
+
+## Start of literature search
+
+<div class="content-slide">
+- Don't start too narrow! 
+- Review(s) articles and journals
+    - Journal of Economic Literature
+    - Journal of Accounting Literature
+- A*/A journals
+    - [Accounting](http://www.abdc.edu.au/master-journal-list.php?title=&issn=&for=3&rating=A*)
+    - [Finance](http://www.abdc.edu.au/master-journal-list.php?title=&issn=&for=4&rating=A*)
+</div>
+
+<div class="notes">
+My favourite way to start a research project now is to find one or two excellent
+overview or review papers. A (systematic) review paper provides a state of a
+research field and identifies interesting new research questions. I am not sure
+whether my strategy will work for you. I find that a good review paper gives a
+good list of papers you can build on and they often already compare the most
+important papers in a field. The trick is to be not too picky. You probably
+will not find a revew for your exact reserch problem but it is unlikely that
+you will not find a partly relevant overview paper. You can search for review
+papers by adding "intitle:review" or "intitle:overview" to your Google Scholar
+search.
+
+To find other papers relevant to your topic, you can build on the review paper 
+by (1) looking up the papers referred to in the review paper and (2) search
+for papers that cite the review paper. You can do the latter via Google Scholar
+and Webofknowledge.
+
+To find good reviews, I think you should start your search in the better 
+journals. Some journals are dedicated to these literature reviews for instance
+*Journal of Economic Literature* and *Journal of Accounting Literature*. I am
+not aware of a similar journal in finance but I will happily add it if you
+let me know. 
+
+When you start your literature search, you don't want to narrow. You are not 
+going to find an overview paper about "CEO compensation in Australian mining 
+companies after the GFC". However, you can start with an overview paper about
+CEO compensation. Like the one I found:  ["Executive Compensation: A Modern
+Primer"](https://dx.doi.org/10.1257/jel.20161153) by Alex Edmans and Xavier
+Gabraix in *Journal of Economic Literature*.
+
+</div>
 
