@@ -1,0 +1,25 @@
+---
+title: "Introduction to Research Methods"
+author: "Stijn Masschelein"
+date: "`r format(Sys.Date(), '%B, %Y')`"
+output:
+  html_document:
+    css: styles.css
+    number_sections: yes
+    theme: readable
+    toc: yes
+  ioslides_presentation: default
+---
+
+
+```{r render, eval=FALSE, echo=FALSE}
+rmarkdown::render("slides1.Rmd", output_format = "html_document",
+                  output_file = "lecture_notes1.html")
+rmarkdown::render("slides1.Rmd", output_format = "ioslides_presentation",
+                  output_file = "lecture_slides1.html")
+```
+
+# Pitching Document
+## TODO
+# Simluations
+# Visualisation

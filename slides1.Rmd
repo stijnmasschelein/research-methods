@@ -5,7 +5,6 @@ date: "`r format(Sys.Date(), '%B, %Y')`"
 output:
   html_document:
     css: styles.css
-    df_print: kable
     number_sections: yes
     theme: readable
     toc: yes
@@ -21,6 +20,13 @@ Things I did to make this work
 - This YAML section need to come first
 -->
 
+```{r render, eval=FALSE, echo=FALSE}
+rmarkdown::render("slides1.Rmd", output_format = "html_document",
+                  output_file = "lecture_notes1.html")
+rmarkdown::render("slides1.Rmd", output_format = "ioslides_presentation",
+                  output_file = "lecture_slides1.html")
+```
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
 library(tidyverse)
@@ -28,6 +34,8 @@ library(ggplot2)
 library(ggthemes)
 theme_set(theme_classic(base_size = 15))
 scale_color_default = scale_color_fivethirtyeight()
+options(tibble.width = 60)
+options(width = 60)
 ```
 
 # Research Methods in Finance and Accounting
@@ -254,8 +262,8 @@ us_value = readRDS(paste0(folder, "us-value.RDS")) %>%
 # Match the compensation data with the value data based on company key and year
 us_comp_value = left_join(select(us_comp, gvkey, year, total_comp),
                           us_value, by = c("year", "gvkey"))
-# Run the non-linear regression. This goes beyond what we are going to do in 
-# this module.
+# Run the non-linear regression and save the results as an equation to put on 
+# the figure. This goes beyond what we are going to do in this module.
 power_law_start = list(a= 5, b = .15)
 power_law_comp = nls(total_comp/1000 ~ a * (market_value/1000)^b, 
                      data = us_comp_value, start = power_law_start) 
@@ -264,16 +272,20 @@ eqn_comp = substitute(italic("compensation") == a * italic("MV") ^ b,
                            b = format(coef(power_law_comp)[2], digits = 2)))
 # create the plot 
 plot_comp_value =  
+  # Add dataset and define x and y axis
   ggplot(us_comp_value, aes(x = market_value/1000, y = total_comp/1000)) +
+  # Add the observations as points to the plot
   geom_point(alpha = .125) +
+  # Draw the results of the power_law regression on the plot
   stat_function(fun = 
                 function(x){
                   coef(power_law_comp)[1] * x ^ coef(power_law_comp)[2]},
                 colour = "blue") +
+  # Add a title
   ggtitle("S&P500 CEO compensation 2011-2017") +
+  # Add label for the x-axis and y-axis 
   ylab("CEO compensation (in million USD)") +
-  xlab("Company market value (in billion USD)") +
-  scale_color_default
+  xlab("Company market value (in billion USD)")
 ```
 </div>
 
@@ -362,7 +374,7 @@ network if you want to actually read the full paper.
 
 ## Start of literature search
 
-<div class="content-slide">
+<div class="content_slide">
 - Don't start too narrow! 
 - Review(s) articles and journals
     - Journal of Economic Literature
@@ -379,7 +391,7 @@ research field and identifies interesting new research questions. I am not sure
 whether my strategy will work for you. I find that a good review paper gives a
 good list of papers you can build on and they often already compare the most
 important papers in a field. The trick is to be not too picky. You probably
-will not find a revew for your exact reserch problem but it is unlikely that
+will not find a review for your exact reserch problem but it is unlikely that
 you will not find a partly relevant overview paper. You can search for review
 papers by adding "intitle:review" or "intitle:overview" to your Google Scholar
 search.
@@ -401,6 +413,312 @@ companies after the GFC". However, you can start with an overview paper about
 CEO compensation. Like the one I found:  ["Executive Compensation: A Modern
 Primer"](https://dx.doi.org/10.1257/jel.20161153) by Alex Edmans and Xavier
 Gabraix in *Journal of Economic Literature*.
+</div>
+
+## Data analysis tools
+
+<div class="content_slide">
+- [Install R](https://cran.curtin.edu.au/)
+- [Install Rstudio](https://www.rstudio.com/products/rstudio/download/#download)
+- [RMarkdown](http://rmarkdown.rstudio.com/authoring_basics.html)
+- [R for datascience](http://r4ds.had.co.nz/)
+
+> I will help you with any questions about these tools during your honours year.
+> We will only scratch the surface in the first three weeks.
 
 </div>
+
+<div class="notes">
+- R is free software specifically aimed at statistical analysis and graphical
+  representation. It is a fully developed programming language that allows to
+  extend it with new packages with new capabilities. We are going to heavily
+  rely on some of those packages. You can save the different steps in your 
+  analysis in an R script which is just a plain text file with the 
+  ".R"-extenstion. 
+- Rstudio is an integrated development environment for R. It allows you to
+  easily write, test, and run R code, and integrate the results with 
+  explanations. One advantage of R and Rstudio is that you can install them on 
+  as many computers as you want. You do not need a special license. 
+- RMarkdown is an R extension of the markdown format. The idea of markdown is to
+  write plain text documents which can later be exported to other formats such
+  as html, pdf, or word. The advantage of plain text scripts and markdown. 
+  The beauty of RMarkdown is that it lets you combine both R scripts and
+  markdown into one document. These slides and lecturenotes are generated from
+  one underlying document. I will not be asking you to anything like that but it
+  does illustrate the power of the RMarkdown approach. 
+- Finally, I am going to introduce you to a specific dialect of the R language
+  which is informally known as the tidyverse. You will see later why. If you
+  want to be a good R programmer this might not be the best entry point into R.
+  However, I assume that you want to quickly pick up some tools to facilitate
+  your research project and for that purpose I believe the tidyverse will 
+  be excellent. I will introduce the most important bits and pieces throughout
+  my lectures however I don't have the time to go into detail. Now and then, you
+  will have to experiment on your own a get your code working. An excellent
+  resource is the free online book "R for datascience". You can also buy 
+  reasonably priced physical copies if you your are interested in developing 
+  your R skills further. 
+</div>
+
+## The R console
+
+<div class="content_slide">
+```{r console, echo=TRUE}
+x = 1
+x
+x = x + 1
+x
+```
+</div>
+
+<div class="notes">
+You can directly type your R code in the console. The little code above
+already shows you two things.
+
+- You can assign (and overwrite) a numerical value to an object `x`
+- The right-hand side is assigned to the left-hand side. You can't just
+  switch them around.
+</div>
+
+## R packages
+
+<div class="content_slide">
+```{r packages, eval=FALSE, echo=TRUE, warnings=FALSE}
+install.packages("tidyverse")
+install.packages("ggplot2")
+library("tidyverse")
+library("ggplot2")
+```
+</div>
+
+<div class="notes">
+We will heavily rely on two packages. `tidyverse` is a package that helps
+with data transformations and working with tabular data in a tidy fashion. 
+`ggplot2` provides tools to make pretty plots. 
+
+The code also gives you an idea how to install packages and use them. Normally,
+you will only have to install a package once. However, when you want to use a
+package in your script or code, you will have to load the package with the 
+`library()` function. You only have to do load a package once at the start of
+your R session or at the start of your script.
+
+I would advise you to use the console for only two purposes. 
+
+1. To test your script by running part of your code or showing intermediate
+   values to check whether your code is doing what you think it should be
+   doing.
+2. To install packages and do R(Studio) maintenance.
+
+For real work, you are better off writing an R script and running that script
+in RStudio. Further on, I will show you how to do that.
+</div>
+
+## The dplyr verbs to explore and transform data.
+
+<div class="content_slide">
+- `filter()`
+- `select()`
+- `mutate()`
+- `group_by()` and `summarise()`
+- `%>%`
+</div>
+
+<div class="notes">
+These functions will be your main tools to filter observations in your data,
+select different variables, mutate variables, group observations and summarise
+the variables in the groups. The pype operator, `%>%`, lets you glue these
+different verbs together.
+</div>
+
+## Looking for help
+
+<div class="content_slide">
+- Trial and error
+- Google
+- StackExchange
+- Help window in RStudio
+- R for Data Science
+- LMS 
+</div>
+
+# A first script
+## Project management in RStudio
+
+<div class="content_slide">
+- Change "Restore .Rdata into workspace"-setting
+    - `Tools > Global Settings ...`
+  
+- Start a new project: `File > New Project ...`
+- Start a new file: `File > New File > R Script`
+</div>
+
+<div class="notes">
+```{r out.width = "60%"}
+knitr::include_graphics(
+  "http://r4ds.had.co.nz/screenshots/rstudio-workspace.png")
+```
+</div>
+
+## Finally some useful code!
+
+<div class="content_slide_wide">
+```{r first_packages, echo = TRUE, eval = FALSE}
+library(tidyverse)
+```
+
+```{r first_data, echo = TRUE}
+us_comp = readRDS("~/Dropbox/R/wrds/data/us-compensation.RDS")
+glimpse(us_comp)
+```
+</div>
+
+<div class="notes">
+- Load the necessary `tidyverse` package.
+- Load the US compensation data from the dataset on LMS and have a look at 
+  which variables are in the dataset. 
+  notes. You do not strictly need it.
+</div>
+
+## A subset of the data.
+
+<div class="content_slide_wide">
+```{r filter, echo = TRUE}
+filter(us_comp, gvkey == "001045")
+```
+</div>
+
+## CEOs with a salary over 1 million in 2014
+
+<div class="content_slide_wide">
+```{r filter-2, echo = TRUE}
+filter(us_comp, salary > 1000, year == 2014)
+```
+</div>
+
+## Focus on some variables.
+
+<div class="content_slide_wide">
+```{r select, echo = TRUE}
+select(us_comp, year, coname, bonus, salary, total = tdc1)
+```
+</div>
+
+## Create a new variable and combine it with 
+
+<div class="content_slide_wide">
+```{r mutate, echo = TRUE}
+mutate(us_comp, coname_clean = trimws(coname),
+       fullname_clean = trimws(exec_fullname)) %>%
+  select(year, coname_clean, fullname_clean) 
+```
+</div>
+
+## Your first summary tables
+
+<div class="content_slide_wide">
+```{r summary, echo = TRUE}
+group_by(us_comp, gvkey) %>%
+  summarise(N = n(), N_CEO = n_distinct(execid), 
+            average = mean(salary), sd = sd(salary),
+            med = median(salary), minimum = min(salary), 
+            maximum = max(salary)) %>%
+  ungroup()
+```
+</div>
+
+# RMarkdown = Markdown + R
+
+## Markdown
+
+### Titles
+
+<div class="content_slide">
+```
+# Title
+## Subtitle
+### Lower level titles.
+```
+</div>
+
+### Mark-up
+
+<div class="content_slide">
+\**Italic*\*, \*\***bold**\**
+</div>
+
+### Links
+
+<div class="content_slide_wide">
+```
+[weblink](https://www.google.com)
+![pictures](https://rstudio.com/wp-content/uploads/2015/10/r-packages.png)
+```
+</div>
+
+## Markdown (2)
+
+### Lists
+
+<div class="content_slide">
+```
+1. Item 1
+2. Item 2 
+3. Item 3 
+
+- one
+- two 
+- three 
+```
+</div>
+
+### Table
+
+<div class="content_slide">
+```
+First Header  | Second Header
+------------- | -------------
+Content Cell  | Content Cell
+Content Cell  | Content Cell
+```
+</div>
+<div class="notes">
+You will rarely have to use tables. Typically, you can directly create
+the tables from R without the need to 
+</div>
+
+
+## R-code in markdown: R chunks
+
+<div class="content_slide">
+    ` ``{r}
+    x = rnorm(n = 10, mean = 0, sd = 1)
+    ` ``
+</div>
+
+## Homework
+
+<div class="content_slide">
+1. Answer in RMarkdown format.
+    `File > New File > R Markdown > ...`
+2. Search for a relevant review article on your topic and give the reference
+   and a link to the article.
+3. Use R chunks to 
+    a. Load the CEO compensation data from LMS
+    b. Focus on the CEOs without a cash bonus in 2013
+    c. Calculate the number of observations, and the average and median
+       bonus per year
+4. Knit the report
+5. Upload the Rmd and html version to LMS
+</div>
+
+<div class="notes">
+There is going to be some trial-and-error and debugging. That is fine.
+Carefully read the errors you get and use the resouces for help. Don't be
+afraid to ask me or each other for help.
+
+1. Give a name to your document and enter your name
+2. Don't search too narrow
+3. See the examples
+4. See the knit button in RStudio
+</div>
+
 

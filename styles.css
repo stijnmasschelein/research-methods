@@ -1,7 +1,6 @@
 body{
   margin: auto;
   max-width: 720px;
-  background-color: #FFEFD5;
 }
 .r{
   font-size: 90%;
@@ -14,6 +13,14 @@ body{
 .content_slide{
   margin: auto;
   max-width: 500px;
+  padding: 20px 10px 15px 15px;
+  border-radius: 5px;
+  border: 2px solid #aaaaaa;
+  background-color: #FFFFFF;
+}
+.content_slide_wide{
+  margin: auto;
+  max-width: 720px;
   padding: 20px 10px 15px 15px;
   border-radius: 5px;
   border: 2px solid #aaaaaa;
