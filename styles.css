@@ -26,6 +26,9 @@ body{
   border: 2px solid #aaaaaa;
   background-color: #FFFFFF;
 }
+.hidden{
+  display: none;
+}
 @media print {
   h1 {page-break-before: always;}
   .content_slide {page-break-inside: avoid;}

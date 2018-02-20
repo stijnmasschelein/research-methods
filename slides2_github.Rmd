@@ -1,0 +1,456 @@
+---
+title: "Introduction to Research Methods"
+author: "Stijn Masschelein"
+date: "`r format(Sys.Date(), '%B, %Y')`"
+output:
+  html_document:
+    css: styles.css
+    number_sections: yes
+    highlight: kate
+    theme: readable
+    toc: yes
+  slidy_presentation:
+    css: styles_presentation.css
+    font_adjustment: +1
+    highlight: kate
+    fig.width: 6
+    fig.height: 4
+---
+
+```{r render, eval=FALSE, echo=FALSE}
+rmarkdown::render("slides2.Rmd", output_format = "html_document",
+                  output_file = "lecture_notes2.html")
+rmarkdown::render("slides2.Rmd", output_format = "ioslides_presentation",
+                  output_file = "lecture_slides2.html")
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(tidyverse)
+library(ggplot2)
+library(ggthemes)
+theme_set(theme_classic(base_size = 15))
+scale_color_default = scale_color_fivethirtyeight()
+options(tibble.width = 60)
+options(width = 60)
+```
+
+# Pitching Document
+## TODO
+# Simulations
+## New theory
+
+<div class="content_slide">
+\[
+V_1(n) - V_0(n) = C V_0(n) T(m)
+\]
+
+- $n$ is the rank of the size of the firm, $m$ is the rank of the talent of the 
+  CEO. 
+- $n = 1$ is the largest firm, $m = 1$ is the most talented CEO.
+
+</div>
+
+<div class="notes">
+The model is the second one presented in Edmans and Gabraix (2016). A more
+rigorous proof is shown in [Tervio (2008)](https://www.aeaweb.org/articles?id=10.1257/aer.98.3.642)
+
+The increase in value of a company, $V_1 - V_0$, $n$, depends on the (T)alent of
+CEO (m). In this setup a manager again has a larger impact in the largest firm
+(V).
+</div>
+
+## Firm's decision
+
+<div class="content_slide">
+\[
+\max_{m} CV_0(n)T(m) - w(m) \\
+m = n\ \land\ w(m) \geq w_0
+\]
+</div>
+
+<div class="notes">
+- In this theory, the firm is taking the decision now, not the CEO. The decision
+  is about which manager to hire and how much to pay them. There is no decision
+  about labour or capital.
+- Because more talented CEOs have a larger impact in larger firms, in       
+  equilibrium, the most talented CEO should work for the largest firm.
+- The inequality constraint says that CEOs can earn $w_0$ somewhere else.
+</div>
+
+## Three firms - three CEOs model
+
+<div class="content_slide">
+\[
+CV_0(1) T(1) - w(1) \geq CV_0(1) T(2) - w(2) \\
+CV_0(1) T(1) - w(1) \geq CV_0(1) T(3) - w(3)
+\]
+
+\[
+CV_0(2) T(2) - w(2) \geq CV_0(2) T(3) - w(3)
+\]
+</div>
+
+<div class="notes">
+- The largest firm, $n = 1$, will only hire the best CEO if the supplus created
+  by the CEO minus their wage is higher than hiring any other CEO.
+</div>
+
+## Three firms - three CEOs model
+
+<div class="content_slide_wide">
+\[
+CV_0(1) T(1) - w(1) \geq CV_0(1) T(2) - w(2) \\
+CV_0(2) T(2) - w(2) \geq CV_0(2) T(3) - w(3)
+\]
+
+\[
+CV_0(1) T(1) - w(1) + CV_0(2) T(2) - \color{blue}{w(2)}
+\geq CV_0(1) T(2) - \color{blue}{w(2)} + CV_0(2) T(3) - w(3)
+\\
+CV_0(1) T(1) - w(1) \geq C(V_0(1) - V_0(2))T(2) + C(V_0(2) - 
+\color{blue}{V_0(1)})T(3) + \color{blue}{CV_0(1)T(3)}- w(3)
+\\
+CV_0(1) T(1) - w(1) \geq 
+\color{blue}{C(V_0(1) - V_0(2))(T(2) - T(3))} + CV_0(1)T(3) - w(3)
+\]
+</div>
+
+<div class="notes">
+Because $V_0(1) > V_0(2)$ and $T_0(2) > T_0(3)$, we can delete the first term 
+on the right hand side. So, the two inequalities give us the third inequality
+from the previous slide for free.
+</div>
+
+## N firms - N CEOs model
+
+<div class="content_slide">
+\[
+CV_0(n) T(n) - w(n) \geq CV_0(n) T(n+1) - w(n+1) \\
+w(n) \geq w_0 \\
+\forall n = 1,.., N-1
+\]
+
+Firm $n$ will pay just enough so that manager $m = n$ is too expensive for
+firm $n - 1$. 
+
+\[
+CV_0(n + 1) (T(n) - T(n+1)) - w(n + 1) = w(n) \\
+\forall n = 1,.., N-1
+\]
+
+> The original papers go further with the derivations. On the other hand, this
+is a recipe we can give to `R` with some further assumptions. So let's build
+some fake data in `R`
+</div>
+
+<div class="notes">
+The basic idea is that a firm will pay more than the CEO for a smaller firm. The
+difference between the two CEOs will be the surplus that the CEO would create 
+in the smaller firm. So the smaller will not be willing to poach the more
+talented CEO because the costs (higher wage) would outweight the benefit 
+(higher surplus).
+
+The original theoretical papers also need these extra assumptions. The  goal
+is to show that sometimes you do not need all the fancy math when you can
+write a computer program to do the work for you.
+</div>
+
+# Simulating data
+
+## Packages
+
+```{r, echo = TRUE, eval = FALSE}
+library(tidyverse)
+library(ggplot2)
+```
+
+## Simulating $V_0$ and $T$
+
+<div class="content_slide">
+```{r size_talent, echo=TRUE}
+obs = 500
+size_rate = 1; talent_rate = 2/3; 
+C = 10; scale = 600; w0 = 0; 
+n = c(1:obs)
+size = scale * n ^ (-size_rate)
+talent = - 1/talent_rate * n ^ (talent_rate)
+```
+
+</div>
+
+## Calculating compensation
+
+<div class="content_slide">
+
+```{r, echo = TRUE}
+wage = rep(NA, obs)
+wage[obs] = w0
+for (i in (obs - 1):1){
+  wage[i] = wage[i + 1] + 1/scale * C * size[i + 1] * 
+    (talent[i] - talent[i + 1])
+}
+```
+
+And put everything in a dataset (or `tibble` in `tidyverse`)
+
+```{r, echo = TRUE}
+fake_data = tibble(
+  n = n,
+  size = size,
+  talent = talent,
+  wage = wage
+) 
+```
+</div>
+
+## Visualisations
+
+<div class="content_slide">
+```{r, echo = TRUE}
+qplot(data = fake_data, x = size, y = wage) 
+```
+</div>
+
+<div class="content_slide">
+`qplot` for *q*uick *plots*
+</div>
+
+## Talent - Size relation
+
+<div class="content_slide">
+```{r, echo = TRUE}
+qplot(data = fake_data, y = talent, x = size)
+```
+</div>
+
+## Functions in `R`
+
+```{r, echo = TRUE}
+create_fake_data = function(obs = 500, size_rate = 1, talent_rate = 1,
+                            w0 = .001, C = 1){
+  scale = 600
+  n = 1:obs
+  size = scale * n ^ (-size_rate) 
+  talent =  -1/talent_rate * n ^ talent_rate
+  wage = rep(NA, obs)
+  wage[obs] = w0 
+  for (i in (obs - 1):1){
+    wage[i] =  wage[i + 1] + 1/scale * C * size[i + 1] * 
+      (talent[i] - talent[i + 1])
+  }
+  fake_data = tibble(n = n, size = size, talent = talent, wage = wage)
+  return(fake_data)
+}
+fake_data = create_fake_data(talent_rate = 2/3, C = 0.01)
+```
+
+## Experimenting with your model
+
+<div class="content_slide_wide">
+```{r, echo = TRUE}
+data1 = create_fake_data(obs = 500, talent_rate = 2/3, C = .01) %>%
+  mutate(talent_rate = "low talent", C = "low effect")
+data2 = create_fake_data(obs = 500, talent_rate = 1, C = .01) %>%
+  mutate(talent_rate = "high talent", C = "low effect")
+data3 = create_fake_data(obs = 500, talent_rate = 2/3, C = .015) %>%
+  mutate(talent_rate = "low talent", C = "high effect")
+data4 = create_fake_data(obs = 500, talent_rate = 1, C = .015) %>%
+  mutate(talent_rate = "high talent", C = "high effect")
+data_exp = bind_rows(data1, data2, data3, data4)
+data_exp
+```
+</div>
+
+## A more complicated plot with `ggplot`
+
+<div class="content_slide">
+```{r, echo = TRUE}
+plot_exp = ggplot(data_exp, aes(x = size, y = wage)) +
+  geom_point() + 
+  geom_line(colour = "blue") +
+  facet_grid(talent_rate ~ C)
+print(plot_exp)
+```
+</div>
+
+## Why simulating data?
+
+<div class="content_slide">
+- Visualising your theory
+- Experimenting and understanding statistical tests 
+- Experimenting with statistical approaches without peaking at your data.
+</div>
+
+<div class="notes">
+- Something
+- You can simulate variables and causal structures that you cannot observe.
+  - see also homework
+</div>
+
+# Linear regression in `R`
+
+## Notation 
+
+\[\mathbf{y} = a + b_1 \mathbf{x_1} + ... + b_n \mathbf{x_n} 
+                 + \mathbf{\epsilon} \]
+
+\[\mathbf{y} = a + \mathbf{b} X + \mathbf{\epsilon} \]
+
+\[\mathbf{y} = \mathcal{N}(a + \mathbf{b} X, \sigma) \]
+
+```{r, eval = FALSE, echo = TRUE}
+reg = lm(y ~ x1 + x2, data = my_data_set)
+summary(reg)
+```
+
+## Linear regression with non-linear theories
+
+<div class="content_slide_wide">
+
+\[W = aV_0^b \implies ln(W) = log(a) + b\ ln(V_0)\]
+
+
+```{r linear_model, echo = TRUE}
+plot_exp +
+  scale_x_continuous(trans = "log", breaks = scales::pretty_breaks())  +
+  scale_y_continuous(trans = "log", breaks = scales::pretty_breaks())
+```
+</div>
+
+<div class="notes">
+One reason why it does not work perfectly is that the reservation wage $w_0$ 
+might be set to low in the simulation. You can see that the line is 
+approximately linear for the largest firms. The real models assume that we have
+$\infty$ firms and we are only interested in the largest firms, that is the most
+right part of the graph. This explanation also illustrates how simulating from
+your theory can help you to understand the theory better. 
+</div>
+
+## An example
+
+### But first we need to get the data right.
+
+<div class="content_slide_wide">
+```{r, echo=TRUE}
+folder = "~/Dropbox/R/wrds/data/"
+us_comp = readRDS(paste0(folder, "us-compensation.RDS")) %>%
+  rename(total_comp = tdc1)
+us_value = readRDS(paste0(folder, "us-value.RDS")) %>%
+  rename(year = fyear, market_value = mkvalt) 
+summary(us_value$market_value)
+```  
+</div>
+
+---
+
+### Some more data wrangling
+
+<div class="content_slide_wide">
+```{r, echo = TRUE}
+glimpse(us_value)
+us_value = us_value %>% distinct() 
+```
+</div>
+
+### Putting it all together
+<div class="content_slide_wide">
+```{r, echo = TRUE}
+us_comp_value = left_join(select(us_comp, gvkey, year, total_comp),
+                          us_value, by = c("year", "gvkey"))
+glimpse(us_comp_value)
+```
+</div>
+
+<div class="notes">
+I am going to ignore the missing values but in your project you should not.
+</div>
+----
+
+### Finally, the regression
+
+<div class="content_slide_wide">
+```{r, echo = TRUE}
+reg = lm(log(total_comp) ~ log(market_value), data = us_comp_value)
+# summary(reg)
+print(summary(reg), digits = 1L)
+```
+</div>
+
+---
+
+### Graphical check
+
+<div class="content_slide_wide">
+```{r, echo = TRUE}
+plot_check = 
+  ggplot(data = us_comp_value, aes(y = total_comp, x = market_value)) +
+  geom_point(alpha = .25) +
+  scale_x_continuous(trans = "log", 
+                     labels = function(x)format(x/1000, digits = 2)) +
+  scale_y_continuous(trans = "log", 
+                     labels = function(x)format(x/1000, digits = 2)) + 
+  ylab("compensation in $ millions") +
+  xlab("market value in $ billions")
+print(plot_check)
+```
+</div>
+
+---
+
+<div class="content_slide_w">
+```{r, echo = TRUE}
+plot_check2 = plot_check +  
+  scale_y_continuous(trans = "log", limits = c(500, NA),
+                     labels = function(x)format(x/1000, digits = 2)) 
+print(plot_check2)
+```
+</div>
+
+
+# Homework
+
+## Simulations and visualisation
+
+<div class="content_slide">
+- Check the conjecture that the log-log transformation makes the theoretical
+  relation between wage-size almost linear for the largest firms.
+- Check whether the compensation-size relation is stable over time.
+- Simulate an exploding time series.
+- Causal structure and control variables
+</div>
+
+<div class="content_note">
+1. Linearity after log-log transformation
+    - Adapt the simulation with the `fake_data()` function for the same 
+      `C` and `talent_rate` values but with `obs = 10000`.
+    - For each simulated dataset keep only the 500 largest firms.
+        - You can use the variable `n` and the data manipulation functions we
+          introduced last week
+    - Plot the log(wage)-log(size) relation for the four different parameters
+      spaces
+    - What have you learned from this exercise.
+ 
+   
+2. One important assumption for the statistical tests of linear models is that
+  the error terms are independently distributed. One could suspect that
+  different years from the same firm have more similar error terms than the
+  rest of the sample. In addition, a lot of tests in the accounting and finance
+  literature use panel data (multiple firms, mutiple years) and assume that the
+  relationship is more or less stable over time. Or we expect that the 
+  relationship is stable until a major change in legislation.
+    - Plot the log(compensation)-log(size) relation for each year using 
+      the `facet_wrap()` function to assess whether the linear trend is visible in
+      each year. Use the help resources if you want to know how to use 
+      `facet_wrap()`.
+    - Does the linear relation hold from year to year?
+
+
+3. An exploding time series. When you deal with time series, you will talk about
+   the stationarity property of a time series. To illustrate
+
+
+4. Causal structure
+
+</div>
+

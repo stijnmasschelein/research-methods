@@ -6,9 +6,15 @@ output:
   html_document:
     css: styles.css
     number_sections: yes
+    highlight: kate
     theme: readable
     toc: yes
-  ioslides_presentation: default
+  slidy_presentation:
+    css: styles_presentation.css
+    font_adjustment: +1
+    highlight: kate
+    fig.width: 6
+    fig.height: 4
 ---
 
 <!--
@@ -23,9 +29,14 @@ Things I did to make this work
 ```{r render, eval=FALSE, echo=FALSE}
 rmarkdown::render("slides1.Rmd", output_format = "html_document",
                   output_file = "lecture_notes1.html")
-rmarkdown::render("slides1.Rmd", output_format = "ioslides_presentation",
+rmarkdown::render("slides1.Rmd", output_format = "slidy_presentation",
                   output_file = "lecture_slides1.html")
 ```
+
+```{bash}
+cp slides1.Rmd slides1_github.Rmd
+```
+
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
@@ -59,9 +70,9 @@ unit.
 
 <div class="content_slide">
 1. The research process and basic data skills by me
-2. Timeseries and databases by Prof. Dirk Bauer
-3. Panel data and identification by Prof. Jing Yang
-4. Restricted dependent variable and survey data by Prof. Paul Gerrans
+2. Panel data and identification by Prof. Jing Yu
+3. Restricted dependent variable and survey data by Prof. Paul Gerrans
+4. Timeseries and databases by Prof. Dirk Bauer
 </div>
 
 <div class="notes">
@@ -77,8 +88,11 @@ solved in other research streams.
 
 <div class="content_slide">
 - No Exam
-- Four assignments (%)
-- Proposal and presentation (%) 
+- Four assignments (70%)
+- Proposal and presentation (30%) 
+    - Pitch (10%) (April 9)
+    - Proposal (10%) (June 29)
+    - Presentation (10%) (Probably week of 16-20 July)
 </div>
 
 <div class="notes">
@@ -289,7 +303,7 @@ plot_comp_value =
 ```
 </div>
 
-<div class="content_slide">
+<div class="content_slide_wide">
 ```{r us_comp_value_plot, warning=FALSE}
 print(plot_comp_value + annotate("text", y = 45, x = 500, parse = TRUE,
                                  label = as.character(as.expression(eqn_comp))))
@@ -689,9 +703,9 @@ the tables from R without the need to
 ## R-code in markdown: R chunks
 
 <div class="content_slide">
-    ` ``{r}
-    x = rnorm(n = 10, mean = 0, sd = 1)
-    ` ``
+    `r ''````{r}
+    x = rnorm(n = 10, mean = 4, sd =)
+    ```
 </div>
 
 ## Homework

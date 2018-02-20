@@ -1,0 +1,23 @@
+.content_slide{
+  margin: auto;
+  max-width: 600px;
+}
+.content_slide_wide{
+  margin: auto;
+  max-width: 800px;
+}
+code {
+  background-color: #FFFFFF;
+  font-size: 80%;
+}
+pre {
+  background-color: #FFFFFF;
+  font-size: 80%;
+}
+.sourceCode{
+  background-color: #FFFFFF;
+  font-size: 90%;
+}
+.hidden{
+  display: none;
+}
