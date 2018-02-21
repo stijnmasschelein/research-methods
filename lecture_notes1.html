@@ -187,7 +187,7 @@ $(document).ready(function () {
 <li><a href="#a-subset-of-the-data."><span class="toc-section-number">4.3</span> A subset of the data.</a></li>
 <li><a href="#ceos-with-a-salary-over-1-million-in-2014"><span class="toc-section-number">4.4</span> CEOs with a salary over 1 million in 2014</a></li>
 <li><a href="#focus-on-some-variables."><span class="toc-section-number">4.5</span> Focus on some variables.</a></li>
-<li><a href="#create-a-new-variable-and-combine-it-with"><span class="toc-section-number">4.6</span> Create a new variable and combine it with</a></li>
+<li><a href="#create-a-new-variable"><span class="toc-section-number">4.6</span> Create a new variable</a></li>
 <li><a href="#your-first-summary-tables"><span class="toc-section-number">4.7</span> Your first summary tables</a></li>
 </ul></li>
 <li><a href="#rmarkdown-markdown-r"><span class="toc-section-number">5</span> RMarkdown = Markdown + R</a><ul>
@@ -248,7 +248,12 @@ Things I did to make this work
 <div class="content_slide">
 <ul>
 <li>No Exam</li>
-<li>Four assignments (70%)</li>
+<li>Four assignments (70%)
+<ul>
+<li>At least 5% for assignment 1 if you do the week 2 homework</li>
+<li>Assignment 1 (10)</li>
+<li>Other assignments (60%)</li>
+</ul></li>
 <li>Proposal and presentation (30%)
 <ul>
 <li>Pitch (10%) (April 9)</li>
@@ -697,8 +702,8 @@ x</code></pre></div>
 ## # ... with 2,963 more rows</code></pre>
 </div>
 </div>
-<div id="create-a-new-variable-and-combine-it-with" class="section level2">
-<h2><span class="header-section-number">4.6</span> Create a new variable and combine it with</h2>
+<div id="create-a-new-variable" class="section level2">
+<h2><span class="header-section-number">4.6</span> Create a new variable</h2>
 <div class="content_slide_wide">
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">mutate</span>(us_comp, <span class="dt">coname_clean =</span> <span class="kw">trimws</span>(coname),
        <span class="dt">fullname_clean =</span> <span class="kw">trimws</span>(exec_fullname)) <span class="op">%&gt;%</span>
@@ -801,9 +806,9 @@ Content Cell  | Content Cell</code></pre>
 <div id="r-code-in-markdown-r-chunks" class="section level2">
 <h2><span class="header-section-number">5.3</span> R-code in markdown: R chunks</h2>
 <div class="content_slide">
-<pre><code>` ``{r}
-x = rnorm(n = 10, mean = 0, sd = 1)
-` ``</code></pre>
+<pre><code>```{r}
+x = rnorm(n = 10, mean = 4, sd = 3)
+```</code></pre>
 </div>
 </div>
 <div id="homework" class="section level2">

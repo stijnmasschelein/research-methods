@@ -20,24 +20,10 @@ output:
 ```{r render, eval=FALSE, echo=FALSE}
 rmarkdown::render("slides2.Rmd", output_format = "html_document",
                   output_file = "lecture_notes2.html")
-rmarkdown::render("slides2.Rmd", output_format = "ioslides_presentation",
+rmarkdown::render("slides2.Rmd", output_format = "slidy_presentation",
                   output_file = "lecture_slides2.html")
-```
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE)
-library(tidyverse)
-library(ggplot2)
-library(ggthemes)
-theme_set(theme_classic(base_size = 15))
-scale_color_default = scale_color_fivethirtyeight()
-options(tibble.width = 60)
-options(width = 60)
-```
-
-# Pitching Document
-## TODO
-# Simulations
+# CEO-firm matching
 ## New theory
 
 <div class="content_slide">
@@ -135,35 +121,52 @@ Firm $n$ will pay just enough so that manager $m = n$ is too expensive for
 firm $n - 1$. 
 
 \[
-CV_0(n + 1) (T(n) - T(n+1)) - w(n + 1) = w(n) \\
+CV_0(n + 1) (T(n) - T(n+1)) + w(n + 1) = w(n) \\
 \forall n = 1,.., N-1
 \]
 
-> The original papers go further with the derivations. On the other hand, this
-is a recipe we can give to `R` with some further assumptions. So let's build
-some fake data in `R`
+> The original papers go further with the derivations. However, this is a recipe
+we can give to `R` with some further assumptions. So let's build some fake data
+in `R`
 </div>
 
 <div class="notes">
-The basic idea is that a firm will pay more than the CEO for a smaller firm. The
-difference between the two CEOs will be the surplus that the CEO would create 
-in the smaller firm. So the smaller will not be willing to poach the more
-talented CEO because the costs (higher wage) would outweight the benefit 
+I hope the three firm model helped you to get some of the intuition behind 
+the model without resorting to too complicated maths. Hopefully, you see how
+we can extrapolate this deriviation to N firms and N CEOs. If the literature
+points you to a mathematical model and you want to understand it better. 
+Breaking it down to a simpler model with only 2 or 3 firms can be very 
+illuminating.
+
+The basic idea is that a larger firm will pay more for a CEO than a smaller
+firm. If the larger firm wants to make sure that a the more talented CEO 
+works for them, they need to pay the CEO a high enough wage. The difference
+between the two wages for a talented CEO will be the surplus that the CEO would
+create in the smaller firm. So the smaller firm will not be willing to poach the
+more talented CEO because the costs (higher wage) would outweight the benefit
 (higher surplus).
 
 The original theoretical papers also need these extra assumptions. The  goal
 is to show that sometimes you do not need all the fancy math when you can
-write a computer program to do the work for you.
+write a computer program to do the work for you. We will use similar 
+assumptions as the original papers but but them in an `R` program.
 </div>
 
 # Simulating data
 
 ## Packages
-
+<div class="content_slide">
 ```{r, echo = TRUE, eval = FALSE}
 library(tidyverse)
 library(ggplot2)
 ```
+</div>
+
+<div class="notes">
+These are just the packages. `tidyverse` helps us dealing with data manipulation
+and organisation. `ggplot2` helps with making graphs.
+</div>
+
 
 ## Simulating $V_0$ and $T$
 
@@ -176,7 +179,31 @@ n = c(1:obs)
 size = scale * n ^ (-size_rate)
 talent = - 1/talent_rate * n ^ (talent_rate)
 ```
+</div>
 
+<div class="notes">
+The first three lines define the variables we are going to deal with. `obs` is
+the number of observations or the number of firms and CEOs. `size_rate` is 
+a parameter that controls the size of firms. A value of 1 means that firms
+have constant returns to size. The same assumption as in the previous lecture.
+`talent_rate` is something similar for the Talent of the CEOs. A larger number
+for both rate parameters implies that differences between sizes or CEOs become
+larger at the top.
+`C` is the $C$ constant in the model. `scale` is an additional parameter that
+helps me scale the size of the firms so that I get similar numbers as the real
+data. (This is not necessarily a fudge. The theory does not say anything about 
+whether we should measure firm size in USD, in AUD or in CNY. So the scale we
+use is arbitrary.) `w0` is the base wage for the least talented CEO.
+
+`n` is an `R` vector of length `obs` (i.e. 500) with values from 1 to `obs`. So
+it is the rank in size and talent for each firm and CEO. 
+
+Size and talent follow an exponential distribution which has some theoretical
+motivation given in the originial papers. If that interests you, please go 
+have a look but it goes beyond what we need today. What we do is give a value
+for the size of each firm from 1 to 500 and for the talent of each CEO from 1 to
+500. We will visualise these distributions to give a better idea of what these
+distributions look like.
 </div>
 
 ## Calculating compensation
@@ -191,7 +218,21 @@ for (i in (obs - 1):1){
     (talent[i] - talent[i + 1])
 }
 ```
+</div>
 
+<div class="notes">
+From our theory slide, we can also calculate the wage of each CEO-firm
+combination. We start with creating a wage vector with 500 `NA` values. At the
+last (500) position of the vector, we set the wage equal to `w0` for the least
+talented CEO and the smallest firm. Than for each firm (we go from `i = 499` 
+to `i = 1`), we set the wage as the wage of the smaller firm - less talented 
+CEO plus the surplus our CEO would generate in the smaller firm.
+</div>
+
+
+## Create a dataset
+
+<div class="content_slide">
 And put everything in a dataset (or `tibble` in `tidyverse`)
 
 ```{r, echo = TRUE}
@@ -207,25 +248,35 @@ fake_data = tibble(
 ## Visualisations
 
 <div class="content_slide">
-```{r, echo = TRUE}
+```{r, echo = TRUE, fig.width=6, fig.height=5}
 qplot(data = fake_data, x = size, y = wage) 
 ```
 </div>
 
-<div class="content_slide">
-`qplot` for *q*uick *plots*
+<div class="notes">
+`qplot` for *q*uick *plots*. 
+It's not perfect but the plot does follow a similar pattern as what we found
+in the first lecture. Most important, we predict a non-linear relationship.
 </div>
 
 ## Talent - Size relation
 
 <div class="content_slide">
-```{r, echo = TRUE}
+```{r, echo = TRUE, fig.width=6, fig.height=5}
 qplot(data = fake_data, y = talent, x = size)
 ```
 </div>
 
+<div class="notes">
+This picture shows us which assumptions were necessary for this to work. We
+see that the difference in talent at the top of the distribution is not that
+large, the difference in firm sizes is much more pronounced and is driving the
+difference in wages.
+</div>
+
 ## Functions in `R`
 
+<div class="content_slide_wide">
 ```{r, echo = TRUE}
 create_fake_data = function(obs = 500, size_rate = 1, talent_rate = 1,
                             w0 = .001, C = 1){
@@ -244,6 +295,23 @@ create_fake_data = function(obs = 500, size_rate = 1, talent_rate = 1,
 }
 fake_data = create_fake_data(talent_rate = 2/3, C = 0.01)
 ```
+</div>
+
+<div class="notes">
+A very powerful feature of `R` is that we can write our own functions. This 
+allows us to create fake data with different parameters quickly. In general, if
+we can make the computer do the work for us, we wil probably be more efficient.
+Making functions is just the recipe we give `R` so that it can do a lot of 
+calculations multiple times.
+
+Functions are created with the `function` function. In between brackets, you
+define the parameter you want to use in your functions and their defaults. 
+In between the curly braces `{}` you tell `R` what it should do with those
+parameters. Ideally, you should not rely on any parameter or data that is not
+defined in your function. `R` has some liberal defaults which might give you
+unexpected results if you do that. You can rely on external functions.
+</div>
+
 
 ## Experimenting with your model
 
@@ -262,10 +330,19 @@ data_exp
 ```
 </div>
 
+<div class="notes">
+We can create new datasets where the talent_rate is increased to 1 (high talent)
+and the effect of CEOs on the surplus is increased to .015 instead of .10. 
+I choose .10 in this simulation instead of 10 so that all values can be 
+interpreted in billion USD to mimic the real data. Again, that is a rather
+arbitrary scaling issue.
+</div>
+
+
 ## A more complicated plot with `ggplot`
 
 <div class="content_slide">
-```{r, echo = TRUE}
+```{r, echo = TRUE, fig.width=6, fig.height=3.5}
 plot_exp = ggplot(data_exp, aes(x = size, y = wage)) +
   geom_point() + 
   geom_line(colour = "blue") +
@@ -283,26 +360,32 @@ print(plot_exp)
 </div>
 
 <div class="notes">
-- Something
+- Visualising can help you sharpen your intuition for your theory and for
+  which values are reasonable and which are not.
 - You can simulate variables and causal structures that you cannot observe.
-  - see also homework
+  - see also this week's homework
+- You don't want to just decide on which statistical test to use because it 
+  gives you the "right" answer. If you want to experiment with different 
+  statistical models, you can do that with simulated data.
 </div>
 
 # Linear regression in `R`
 
 ## Notation 
 
+<div class="content_slide">
 \[\mathbf{y} = a + b_1 \mathbf{x_1} + ... + b_n \mathbf{x_n} 
                  + \mathbf{\epsilon} \]
 
 \[\mathbf{y} = a + \mathbf{b} X + \mathbf{\epsilon} \]
 
-\[\mathbf{y} = \mathcal{N}(a + \mathbf{b} X, \sigma) \]
+\[\mathbf{y} \sim \mathcal{N}(a + \mathbf{b} X, \sigma) \]
 
 ```{r, eval = FALSE, echo = TRUE}
 reg = lm(y ~ x1 + x2, data = my_data_set)
 summary(reg)
 ```
+</div>
 
 ## Linear regression with non-linear theories
 
@@ -311,7 +394,7 @@ summary(reg)
 \[W = aV_0^b \implies ln(W) = log(a) + b\ ln(V_0)\]
 
 
-```{r linear_model, echo = TRUE}
+```{r linear_model, echo = TRUE, fig.width=6, fig.height=3.5}
 plot_exp +
   scale_x_continuous(trans = "log", breaks = scales::pretty_breaks())  +
   scale_y_continuous(trans = "log", breaks = scales::pretty_breaks())
@@ -342,7 +425,11 @@ summary(us_value$market_value)
 ```  
 </div>
 
----
+<div class="notes">
+We have a bunch of observations with missing values (`NA`)
+</div>
+
+---------
 
 ### Some more data wrangling
 
@@ -352,6 +439,13 @@ glimpse(us_value)
 us_value = us_value %>% distinct() 
 ```
 </div>
+
+<div class="notes">
+For a reason that I have not figured out yet it looks like each observation
+in the `us_value` dataset was downloaded twice.
+</div>
+
+---------
 
 ### Putting it all together
 <div class="content_slide_wide">
@@ -363,9 +457,16 @@ glimpse(us_comp_value)
 </div>
 
 <div class="notes">
-I am going to ignore the missing values but in your project you should not.
+`left_join` is a function that joins two datasets together based on key 
+variables. The join functions in the `tidyverse` can be a lifesaver if you
+are working with multiple datasets that need to be matched together.
+
+I am going to ignore the missing values but in your project you should not. You
+should try to figure out why they are missing. The homework might illuminate 
+one of the reasons.
 </div>
-----
+
+---------
 
 ### Finally, the regression
 
@@ -377,12 +478,19 @@ print(summary(reg), digits = 1L)
 ```
 </div>
 
----
+<div class="notes">
+`R` gives way to much information but I am just restricting the number of 
+significant digits because that is my biggest concern. You can just use
+`summary(reg)`.
+</div>
+
+
+--------
 
 ### Graphical check
 
 <div class="content_slide_wide">
-```{r, echo = TRUE}
+```{r, echo = TRUE, fig.width=5, fig.height=2.5}
 plot_check = 
   ggplot(data = us_comp_value, aes(y = total_comp, x = market_value)) +
   geom_point(alpha = .25) +
@@ -396,15 +504,26 @@ print(plot_check)
 ```
 </div>
 
+<div class="notes">
+On the log-log scale, we see that there are some CEOs with very low compensation
+compared to the bulk of the observations. In the next figure, we will just
+ignore those.
+</div>
+
+
 ---
 
-<div class="content_slide_w">
-```{r, echo = TRUE}
+<div class="content_slide_wide">
+```{r, echo = TRUE, fig.width=5, fig.height=2.5}
 plot_check2 = plot_check +  
   scale_y_continuous(trans = "log", limits = c(500, NA),
                      labels = function(x)format(x/1000, digits = 2)) 
 print(plot_check2)
 ```
+</div>
+
+<div class="notes">
+This looks pretty linear to me.
 </div>
 
 
@@ -413,14 +532,14 @@ print(plot_check2)
 ## Simulations and visualisation
 
 <div class="content_slide">
-- Check the conjecture that the log-log transformation makes the theoretical
+1. Check the conjecture that the log-log transformation makes the theoretical
   relation between wage-size almost linear for the largest firms.
-- Check whether the compensation-size relation is stable over time.
-- Simulate an exploding time series.
-- Causal structure and control variables
+2. Check whether the compensation-size relation is stable over time.
+3. Simulate an exploding time series.
+4. Causal structure and control variables
 </div>
 
-<div class="content_note">
+<div class="notes">
 1. Linearity after log-log transformation
     - Adapt the simulation with the `fake_data()` function for the same 
       `C` and `talent_rate` values but with `obs = 10000`.
@@ -429,9 +548,11 @@ print(plot_check2)
           introduced last week
     - Plot the log(wage)-log(size) relation for the four different parameters
       spaces
-    - What have you learned from this exercise.
+    - What have you learned from this exercise?
+</div>
  
-   
+
+<div class="notes">
 2. One important assumption for the statistical tests of linear models is that
   the error terms are independently distributed. One could suspect that
   different years from the same firm have more similar error terms than the
@@ -444,13 +565,59 @@ print(plot_check2)
       each year. Use the help resources if you want to know how to use 
       `facet_wrap()`.
     - Does the linear relation hold from year to year?
+</div>
 
 
+<div class="notes">
 3. An exploding time series. When you deal with time series, you will talk about
-   the stationarity property of a time series. To illustrate
+   the stationarity property of a time series. To illustrate this issue, let's
+   simulate two time series. The simplest time series have a structure that
+   depends on the previous obervation and some independent random noise. For
+   simplicity let's use normally distributed noise. We can then write.
+   $$
+   V_t = \beta V_{t-1} + \epsilon_t \\
+   V_t \sim \mathcal{N}(\beta V_{t-1}, \sigma)
+   $$
+   I want you to generate two time series `x` and `y` with 365 obervations each. 
+   For both time series, you can generate the noise as normally distribute with
+   mean 0 and standard devation .5. For `x` $\beta = .9$ and for `y` $\beta =
+   1.1$. For the first, value you can use the same random noise as above. Have
+   a look at the `wage` script above. There are striking similarities with 
+   time series.
+   Put both variables in a dataset (`tibble`) and plot the two time series over
+   time in two separate plots. This means you will have to have a variable that
+   designates the time (i.e. the day).
+</div>
 
 
-4. Causal structure
+<div class="notes">
+4. A lot of you will deal with the problem of which control variables to
+    introduce in your statistical model. I have a lot of opinions about this. 
+    However for now, I just want to show you how simulations can help you decide
+    whether you should include some variables. Let's assume you have the 
+    following theoretical model in mind. You have your variable of interest x
+    (= CEO experience) and you believe that x leads to more of y (firm profit). 
+    You think that because a x leads to z (optimal investment policy) and z
+    leads to y. So we have x --> z --> y as your causal model. If this is what
+    you think than I would argue you should not control for z when you regress
+    x on y.
+    Let's put some numbers on the causal model. 
+    $$
+    x \sim \mathcal{N(0, 1)} \\
+    z \sim \mathcal{N(1 + x, 1)} \\
+    y \sim \mathcal{N(1 + z, 1)} \\
+    $$
+   In this causal model, more of x leads ultimately to more of y. Your tests 
+   should reflect that. 
+     - Simulate 1000 values of x, y, z for this causal structure.
+     - Run the linear regression with z as dependent variable and x as 
+       independent variable. 
+     - Run the linear regression with y as dependent variable and x as 
+       independent variable. 
+     - Run the linear regression with y as dependent variable and x and z as
+       independent variable.
+     - What have you learned from this exercise?
+</div>
 
 </div>
 

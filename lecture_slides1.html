@@ -98,7 +98,12 @@ Things I did to make this work
 <div class="content_slide">
 <ul>
 <li>No Exam</li>
-<li>Four assignments (70%)</li>
+<li>Four assignments (70%)
+<ul>
+<li>At least 5% for assignment 1 if you do the week 2 homework</li>
+<li>Assignment 1 (10)</li>
+<li>Other assignments (60%)</li>
+</ul></li>
 <li>Proposal and presentation (30%)
 <ul>
 <li>Pitch (10%) (April 9)</li>
@@ -363,8 +368,8 @@ x</code></pre></div>
 ## 10  2014 &quot;PINNACLE WEST CAPITAL CORP   …     0   1240  7376
 ## # ... with 2,963 more rows</code></pre>
 </div>
-</div><div id="create-a-new-variable-and-combine-it-with" class="slide section level2">
-<h2>Create a new variable and combine it with</h2>
+</div><div id="create-a-new-variable" class="slide section level2">
+<h2>Create a new variable</h2>
 <div class="content_slide_wide">
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">mutate</span>(us_comp, <span class="dt">coname_clean =</span> <span class="kw">trimws</span>(coname),
        <span class="dt">fullname_clean =</span> <span class="kw">trimws</span>(exec_fullname)) <span class="op">%&gt;%</span>
@@ -450,7 +455,7 @@ Content Cell  | Content Cell</code></pre>
 <h2>R-code in markdown: R chunks</h2>
 <div class="content_slide">
 <pre><code>```{r}
-x = rnorm(n = 10, mean = 4, sd = 10)
+x = rnorm(n = 10, mean = 4, sd = 3)
 ```</code></pre>
 </div>
 </div><div id="homework" class="slide section level2">

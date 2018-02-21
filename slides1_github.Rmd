@@ -26,38 +26,13 @@ Things I did to make this work
 - This YAML section need to come first
 -->
 
+# Research Methods in Finance and Accounting
+
 ```{r render, eval=FALSE, echo=FALSE}
 rmarkdown::render("slides1.Rmd", output_format = "html_document",
                   output_file = "lecture_notes1.html")
 rmarkdown::render("slides1.Rmd", output_format = "slidy_presentation",
                   output_file = "lecture_slides1.html")
-```
-
-```{bash}
-cp slides1.Rmd slides1_github.Rmd
-```
-
-
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE)
-library(tidyverse)
-library(ggplot2)
-library(ggthemes)
-theme_set(theme_classic(base_size = 15))
-scale_color_default = scale_color_fivethirtyeight()
-options(tibble.width = 60)
-options(width = 60)
-```
-
-# Research Methods in Finance and Accounting
-
-## Introduction
-
-<div class="content_slide">
-- Preparation to do empirical research (in accounting and finance)
-- From theory to data
-- From data to statistical tests
-</div>
 
 <div class="notes">
 The emphasis on the units will be on the practical and statistical issues of
@@ -89,6 +64,9 @@ solved in other research streams.
 <div class="content_slide">
 - No Exam
 - Four assignments (70%)
+    - At least 5% for assignment 1 if you do the week 2 homework
+    - Assignment 1 (10)
+    - Other assignments (60%)
 - Proposal and presentation (30%) 
     - Pitch (10%) (April 9)
     - Proposal (10%) (June 29)
@@ -616,7 +594,7 @@ select(us_comp, year, coname, bonus, salary, total = tdc1)
 ```
 </div>
 
-## Create a new variable and combine it with 
+## Create a new variable 
 
 <div class="content_slide_wide">
 ```{r mutate, echo = TRUE}
@@ -704,7 +682,7 @@ the tables from R without the need to
 
 <div class="content_slide">
     `r ''````{r}
-    x = rnorm(n = 10, mean = 4, sd =)
+    x = rnorm(n = 10, mean = 4, sd = 3)
     ```
 </div>
 
