@@ -391,7 +391,7 @@ summary(reg)
 
 <div class="content_slide_wide">
 
-\[W = aV_0^b \implies ln(W) = log(a) + b\ ln(V_0)\]
+\[W = aV_0^b \implies ln(W) = ln(a) + b\ ln(V_0)\]
 
 
 ```{r linear_model, echo = TRUE, fig.width=6, fig.height=3.5}

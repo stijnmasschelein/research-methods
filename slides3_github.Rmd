@@ -1,0 +1,505 @@
+---
+title: "Introduction to Research Methods"
+author: "Stijn Masschelein"
+date: "`r format(Sys.Date(), '%B, %Y')`"
+output:
+  slidy_presentation:
+    css: styles_presentation.css
+    font_adjustment: +1
+    highlight: kate
+    fig.width: 6
+    fig.height: 4
+  html_document:
+    css: styles.css
+    number_sections: yes
+    highlight: kate
+    theme: readable
+    toc: yes
+---
+
+<!--
+Things I did to make this work
+- See yaml: The html document are the notes, the slides are well the slides
+- Made a snippet in Rstudio (`no`) for the notes div; (`cs`) for the content
+  of slides.
+- Made an additional style for the notes and the slides.
+- This YAML section need to come first
+-->
+
+```{r render, eval=FALSE, echo=FALSE}
+rmarkdown::render("slides3.Rmd", output_format = "html_document",
+                  output_file = "lecture_notes3.html")
+rmarkdown::render("slides3.Rmd", output_format = "slidy_presentation",
+                  output_file = "lecture_slides3.html")
+
+<div class="notes">
+The linear relation follows from a theory that assumes that CEOs grow the 
+company and CEOs have a multiplicative effect on the value of the firm. The
+log-log relation follows from the assumption that CEOs have a multiplicative
+effect on firm value and firms and CEOs match (on size and talent).
+</div>
+ 
+## CEO Incentive Compensation 
+
+<div class="content_slide"> 
+
+> Jensen and Murphy (1990) estimated \$–\$ incentives
+> and showed that the CEO loses only $3.25 for every $1,000 loss in firm value, an
+> effective equity stake of only 0.325 percent. They interpreted this stake as
+> too low to be reconciled with optimal contracting, and thus concluded that
+> CEOs are “paid like bureaucrats" 
+
+[From Edmans and Gabaix (2016)]()
+
+</div>
+
+## CEO effects on firm value
+
+<div class="content_slide">
+- Independent of firm size
+    - Perks (e.g. corporate jet)
+
+- Multiplicative 
+    - Good decision are rolled out for the entire firm (e.g. strategy)
+    - More cash to divert in larger firm 
+</div>
+
+## CEO preferences or cost of working
+
+<div class="content_slide">
+- Additive with compensation
+    - Working has a monetary cost, e.g. opportunity cost.
+    - Foregoing leisure time
+
+- Multiplicative with compensation
+    - If you are rich, one vacation day is more valuable
+</div>
+
+<div class="notes">
+- opportunity cost = "Instead of managing a company, I could be investing in 
+  X" with X your preferred investment vehicle.
+- One vacation day is more valuable = Elon Musk's or Richard Branson's days 
+  off sound pretty bad ass.
+</div>
+
+## Optimal CEO incentives
+
+<div class="content_slide">
+1. Additative effect on firm size
+    - Constant equity compensation: \$-\$ incentives
+2. Multiplicative effect on firm size
+    - \$-\% incentives
+3. Multiplicative effect on firm size and multiplicative preferences
+    - %-% incentives
+</div>
+
+<div class="notes">
+- Optimal CEO incentives *from a optimal contracting* point of view with
+  additional assumptions. This is important if we want to investigate whether
+  CEOs have the appropriate pay for performance sensitivity according to 
+  optimal contracting theory.
+- Multiplicative effect on firm size means that for each good decision the
+  value of the firm increases with a certain percentage.
+</div>
+
+## Measuring pay-performance sensitivity: Total wealth not cash payments
+
+### Theoretically
+
+<div class="content_slide">
+1. $\frac{\partial W}{\partial r} \frac{1}{V_0}$
+2. $\frac{\partial W}{\partial r}$
+3. $\frac{\partial W}{\partial r} \frac{1}{W_0}$
+</div>
+
+<div class="notes">
+The partial derivative indicates the change in wealth ($) for a change in 
+returns (%). 
+
+Mathematical note: 
+$$ ln(W) - ln(W_0) = ln(\frac{W}{W_0})$$
+</div>
+
+### Empirically
+
+<div class="content_slide">
+1. $\frac{\Delta Wealth}{\Delta Firm\ Value}$
+2. $\frac{\Delta Wealth}{\Delta ln(Firm\ Value)}$
+3. $\frac{\Delta ln(Wealth)}{\Delta ln(Firm\ Value)}$
+</div>
+
+<div class="notes">
+So wealth-performance sensitivity is actually a better description.  
+</div>
+
+<!-- Probably the nicest thing would be to use a true null, i.e. %incentives should -->
+<!-- be constant over the firm size. If not could be explained by Libby boxes. -->
+
+# What does the data say?
+
+## Load the data and the packages
+
+### Data
+
+<div class="content_slide_wide">
+```{r, echo=TRUE, eval=FALSE}
+library(tidyverse)
+library(ggplot2)
+folder = "~/Dropbox/R/wrds/data/"
+us_comp = readRDS(paste0(folder, "us-compensation.RDS")) %>%
+  rename(total_comp = tdc1)
+us_value = readRDS(paste0(folder, "us-value.RDS")) %>%
+  rename(year = fyear, market_value = mkvalt) 
+```  
+
+```{r, echo=FALSE, eval=TRUE}
+folder = "~/Dropbox/R/wrds/data/"
+us_comp = readRDS(paste0(folder, "us-compensation.RDS")) %>%
+  rename(total_comp = tdc1, shares = shrown_tot_pct)
+us_value = readRDS(paste0(folder, "us-value.RDS")) %>%
+  rename(year = fyear, market_value = mkvalt) %>%
+  distinct()
+```  
+</div>
+
+## Join the two datasets
+
+<div class="content_slide_wide">
+```{r, echo = TRUE}
+us_comp_limit = select(us_comp, gvkey, execid, year, shares, total_comp)
+us_comp_value = left_join(us_comp_limit, us_value,
+                          by = c("year", "gvkey")) %>%
+  filter(!is.na(market_value) & !(is.na(shares))) %>%
+  mutate(wealth = shares * market_value / 100)
+
+max(us_comp_value$market_value)/1e3
+max(us_comp_value$wealth)/1e3
+```
+</div>
+
+<div class="notes">
+Apple's current market value hovers around $890 billion. Jeff Bezos is worth
+around $100 billion. So it's not a terrible first attempt. 
+</div>
+
+## Shares as a function of firm size
+
+<div class="content_slide_wide">
+```{r shares_size, echo = TRUE, fig.width = 5, fig.height = 3}
+shares_size = ggplot(data = us_comp_value, 
+                     aes(x = market_value, y = shares)) + 
+  geom_point(alpha = .10)
+plot(shares_size)
+```
+</div>
+
+## Shares as a function of firm size (2)
+
+<div class="content_slide_wide">
+```{r shares_size_2, echo = TRUE, fig.width = 4, fig.height = 3}
+shares_size_log = shares_size + 
+  scale_x_continuous(trans = "log", 
+                     breaks = scales::pretty_breaks(n = 3)) + 
+  scale_y_continuous(trans = "log", 
+                     breaks = scales::pretty_breaks(n = 3)) 
+plot(shares_size_log)  
+```
+</div>
+
+<div class="notes">
+I wonder whether the cloud of points at the top of the graph are founder CEOs.
+They might keep a larger amount of shares and optimal contracting might have
+a different logic here. I will ignore this issue further onwards.
+</div>
+
+## Create lagged variables
+
+<div class="content_slide_wide">
+```{r lagged, echo = TRUE}
+us_comp_value = group_by(us_comp_value, gvkey, execid) %>%
+  arrange(year) %>%
+  mutate(prev_market_value = lag(market_value),
+         prev_wealth = lag(wealth),
+         prev_comp = lag(total_comp)) %>%
+  ungroup() %>%
+  mutate(change_market_value = market_value - prev_market_value,
+         change_wealth = wealth - prev_wealth,
+         change_comp = total_comp - prev_comp,
+         change_log_value = log(market_value) - log(prev_market_value),
+         change_log_wealth = log(wealth) - log(prev_wealth),
+         change_log_comp = log(total_comp) - log(prev_comp)) %>%
+  mutate(change_log_wealth = 
+           ifelse(is.infinite(change_log_wealth),
+                  min(change_log_wealth[is.finite(change_log_wealth)]),
+                  change_log_wealth)) %>%
+  arrange(gvkey)
+```
+</div>
+
+<div class="notes">
+The last addition is a bit of hack. There is one wealth change that is infinite
+at the log value. That can happen when a CEO ends up with 0 shares.
+</div>
+
+## Comparison to the literature
+
+<div class="content_slide_wide">
+```{r, echo = TRUE}
+jensen_murphy90 = lm(change_comp ~ change_market_value,
+                     data = us_comp_value)
+hall_liebman98 = lm(change_log_comp ~ 
+                    I(change_market_value/prev_market_value),
+                    data = us_comp_value)
+hall_liebman98_alt = lm(change_log_comp ~ change_log_value,
+                        data = us_comp_value)
+core_guay_thomas05 = lm(change_log_wealth ~ change_log_value,
+                         data = us_comp_value)
+```
+</div>
+
+---
+
+### Coefficients
+
+<div class="content_slide">
+```{r, echo = TRUE}
+coef(jensen_murphy90)[2]
+coef(hall_liebman98)[2]
+coef(hall_liebman98_alt)[2]
+coef(core_guay_thomas05)[2]
+```
+</div>
+
+<div class="notes">
+- Jensen and Murphy found that a CEO gets $3.5 for every $1000 change in market
+  value. Our estimate is `r round(coef(jensen_murphy90)[2], 2)`.
+  The difference is first of all probably an indicator that we did not do the
+  best possible analysis but it probably also means that the $-$ incentives
+  are not the best possible assumption. Moreover, total compensation does not
+  take into account wealth. Other studies have found that the $-$ incentives
+  measures of incentive 
+</div>
+
+## Comparison plot
+
+<div class="notes">
+### Data
+
+```{r sensitivity, echo = TRUE}
+data_comparison = select(us_comp_value, change_comp, change_market_value,
+                         change_log_comp, change_log_value, 
+                         change_log_wealth) %>%
+  filter(complete.cases(.))
+n = nrow(data_comparison)
+data_comparison = bind_rows(data_comparison, data_comparison, 
+                            data_comparison) %>%
+  mutate(analysis = c(rep("jensen_murphy90", n), 
+                     rep("hall_liebman98_alt", n),
+                     rep("core_guay_thomas05", n))) %>%
+  mutate(incentive = recode(analysis,
+                            "jensen_murphy90" = change_comp,
+                            "hall_liebman98_alt" = change_log_comp,
+                            "core_guay_thomas05" = change_log_wealth),
+         performance = recode(analysis,
+                              "jensen_murphy90" = change_market_value,
+                              "hall_liebman98_alt" = change_log_value,
+                              "core_guay_thomas05" = change_log_value)) %>%
+  select(analysis, performance, incentive)
+```
+</div>
+
+### Plot
+
+<div class="content_slide_wide">
+```{r comparison_plot, echo = TRUE, fig.height = 3, fig.width = 7}
+comparison_plot = ggplot(data_comparison, 
+                         aes(x = performance, y = incentive)) +
+  geom_point(alpha = .1) +
+  facet_wrap( ~ analysis, ncol = 3, scales = "free") +
+  scale_x_continuous(breaks = scales::pretty_breaks(n = 3)) + 
+  scale_y_continuous(breaks = scales::pretty_breaks(n = 3))
+print(comparison_plot)
+```
+</div>
+
+# The point
+
+## Libby boxes
+
+<div class="content_slide">
+```{r out.height = "90%"}
+knitr::include_graphics(
+  "http://fasri.net/wp-content/uploads/2009/10/predictive-validity-framework.jpg")
+```
+</div>
+
+# Hypothesis testing
+
+## Are incentives independent of size? 
+
+<div class="content_slide_wide">
+```{r hypothesis, echo = TRUE, fig.height = 3, fig.width = 5}
+hypothesis = ggplot(us_comp_value, 
+                    aes(y = change_log_wealth - change_log_value,
+                        x = market_value)) + 
+  geom_point(alpha = .1) +
+  scale_x_continuous(trans = "log", limits = c(NA, NA),
+                     breaks = scales::pretty_breaks(n = 3)) +
+  xlab("market value") +
+  ylab("incentive")
+print(hypothesis)
+```
+</div>
+
+## Null hypothesis
+
+<div class="content_slide">
+### i.e. there is no relation between wealth-performance sensitivity and performance
+
+- sensitivity = $ln(\frac{W/W_0}{V/V_0})$
+- market value = $V_0$
+
+</div>
+
+<div class="content_slide_wide">
+### No relation = randomly reshuffling the values
+```{r hypothesis_data, echo = TRUE}
+data_hypo = mutate(us_comp_value, 
+                   sensitivity = change_log_wealth - change_log_value) %>%
+  select(sensitivity, market_value) %>%
+  filter(complete.cases(.))
+true_cor = cor(data_hypo$sensitivity, data_hypo$market_value)
+rand_cor = cor(data_hypo$sensitivity, sample(data_hypo$market_value))
+print(round(c(true_cor, rand_cor), 2))
+```
+</div>
+
+---
+
+### Simulation of no effect
+
+<div class="content_slide_wide">
+```{r hypothesis_sample, echo = TRUE}
+simulate_cor = function(data){return(cor(data$sensitivity, 
+                                         sample(data$market_value)))}
+rand_cor = replicate(1e4, simulate_cor(data_hypo))
+```
+
+```{r sample_plot, echo = FALSE, fig.height=4}
+hist_sim= qplot(rand_cor) + 
+  geom_point(aes(y = 25, x = c(-true_cor, true_cor)), size = 2.5, 
+             col = "lightgreen") +
+  annotate(geom = "text", y = 100, x = true_cor, size = 5,
+           col = "lightgreen", label = "true_cor") +
+  geom_segment(aes(y = -10, yend = -10, 
+                   x = abs(true_cor), xend = max(rand_cor)),
+               col = "lightgreen", size = 2) +
+  geom_segment(aes(y = -10, yend = -10, 
+                   x = - abs(true_cor), xend = min(rand_cor)),
+               col = "lightgreen", size = 2) +
+  ylab("") +
+  ggtitle("Distribution of simulated correlations")
+print(hist_sim)
+```
+</div>
+
+## P-value
+
+### Correlation
+
+<div class="content_slide_wide">
+```{r pvalue, echo = TRUE}
+pvalue_sim =  mean(ifelse(abs(rand_cor) > abs(true_cor), 1, 0))
+cor = cor.test(data_hypo$sensitivity, data_hypo$market_value)
+pvalue_cor = cor$p.value
+print(c(pvalue_cor, pvalue_sim), dig = 3)
+```
+</div>
+
+---
+
+### Regression and correlation
+
+<div class="content_slide_wide">
+$$
+y \sim \mathcal{N}(\alpha + \beta x, \sigma) \\
+\beta = \frac{sd(y)}{sd(x)} cor(x, y)
+$$
+
+```{r regr-corr, echo = TRUE}
+regr_sens = lm(sensitivity ~ market_value, data = data_hypo)
+print(coefficients(summary(regr_sens)), dig = 3)
+```
+</div>
+
+<div class="notes">
+We can redo the whole thing with compensation-performance sensitivity.
+```{r comp-pref, echo = TRUE}
+hypothesis = ggplot(us_comp_value, 
+                    aes(y = change_log_comp - change_log_value,
+                        x = market_value)) + 
+  geom_point(alpha = .1) +
+  scale_x_continuous(trans = "log", limits = c(NA, NA),
+                     breaks = scales::pretty_breaks(n = 3)) +
+  xlab("market value") +
+  ylab("incentive")
+print(hypothesis)
+
+data_hypo = mutate(us_comp_value, 
+                   sensitivity = change_log_comp - change_log_value) %>%
+  select(sensitivity, market_value) %>%
+  filter(complete.cases(.))
+true_cor = cor(data_hypo$sensitivity, data_hypo$market_value)
+rand_cor = cor(data_hypo$sensitivity, sample(data_hypo$market_value))
+print(round(c(true_cor, rand_cor), 2))
+
+rand_cor = replicate(1e4, simulate_cor(data_hypo))
+
+hist_sim= qplot(rand_cor) + 
+  geom_point(aes(y = 25, x = c(-true_cor, true_cor)), size = 2.5, 
+             col = "lightgreen") +
+  annotate(geom = "text", y = 100, x = true_cor, size = 5,
+           col = "lightgreen", label = "true_cor") +
+  geom_segment(aes(y = -10, yend = -10, 
+                   x = abs(true_cor), xend = max(rand_cor)),
+               col = "lightgreen", size = 2) +
+  geom_segment(aes(y = -10, yend = -10, 
+                   x = - abs(true_cor), xend = min(rand_cor)),
+               col = "lightgreen", size = 2) +
+  ylab("") +
+  ggtitle("Distribution of simulated correlations")
+print(hist_sim)
+
+pvalue_sim =  mean(ifelse(abs(rand_cor) > abs(true_cor), 1, 0))
+cor = cor.test(data_hypo$sensitivity, data_hypo$market_value)
+pvalue_cor = cor$p.value
+print(c(pvalue_cor, pvalue_sim), dig = 3)
+
+regr_sens = lm(sensitivity ~ market_value, data = data_hypo)
+print(coefficients(summary(regr_sens)), dig = 3)
+```
+</div>
+
+
+## Summary p-value
+
+<div class="content_slide">
+- Assuming the null hypothesis is true, how likely is it to get a value at least
+  as extreme as the observed value
+- 99.99% of all studies are interested in the alternative hypothesis not the
+  null hypothesis.
+- We can use simulations but they become time consuming in complicated 
+  scenarios.
+- We can use additional assumptions but they become less robust in complicated
+  scenarios.
+</div>
+
+# Assignment
+
+## Test
+
+
+
+
+
+

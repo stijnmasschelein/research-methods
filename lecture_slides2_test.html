@@ -297,7 +297,7 @@ data_exp</code></pre></div>
 </div><div id="linear-regression-with-non-linear-theories" class="slide section level2">
 <h2>Linear regression with non-linear theories</h2>
 <div class="content_slide_wide">
-<p><span class="math display">\[W = aV_0^b \implies ln(W) = ln(a) + b\ ln(V_0)\]</span></p>
+<p><span class="math display">\[W = aV_0^b \implies ln(W) = log(a) + b\ ln(V_0)\]</span></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">plot_exp <span class="op">+</span>
 <span class="st">  </span><span class="kw">scale_x_continuous</span>(<span class="dt">trans =</span> <span class="st">&quot;log&quot;</span>, <span class="dt">breaks =</span> scales<span class="op">::</span><span class="kw">pretty_breaks</span>())  <span class="op">+</span>
 <span class="st">  </span><span class="kw">scale_y_continuous</span>(<span class="dt">trans =</span> <span class="st">&quot;log&quot;</span>, <span class="dt">breaks =</span> scales<span class="op">::</span><span class="kw">pretty_breaks</span>())</code></pre></div>
